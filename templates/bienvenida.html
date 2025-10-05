@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Bienvenida</title>
+<style>
+body { font-family: Arial; background-color: #f8f5ff; display:flex; justify-content:center; align-items:center; height:100vh; }
+.container { background:white; padding:30px; border-radius:12px; box-shadow:0 0 15px rgba(0,0,0,0.1); width:380px; }
+h2 { color:#6a0dad; text-align:center; }
+input { width:100%; padding:8px; margin:8px 0; border-radius:5px; border:1px solid #ccc; }
+button { width:100%; padding:8px; margin-top:10px; background-color:#9b59b6; color:white; border:none; border-radius:6px; cursor:pointer; }
+button:hover { background-color:#7d3c98; }
+#error { color:red; font-size:12px; margin-top:5px; }
+.toggle-btn { background:none; border:none; color:#6a0dad; text-decoration:underline; cursor:pointer; margin-top:5px; font-size:13px; }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <!-- Registro -->
+    <div id="registroFormContainer">
+        <h2>Registro</h2>
+        <form id="registroForm">
+            <input type="text" name="nombre" placeholder="Nombre">
+            <input type="email" name="correo" placeholder="Correo">
+            <input type="password" name="contraseña" placeholder="Contraseña">
+            <button type="submit">Registrarse</button>
+            <div id="registroError"></div>
+        </form>
+        <p style="text-align:center; margin-top:10px;">
+            ¿Ya tienes cuenta? 
+            <button type="button" class="toggle-btn" id="irLoginBtn2">Inicia sesión</button>
+        </p>
+    </div>
+
+    <!-- Login (inicialmente oculto) -->
+    <div id="loginFormContainer" style="display:none;">
+        <h2>Iniciar Sesión</h2>
+        <form id="loginForm">
+            <input type="email" name="correo" placeholder="Correo">
+            <input type="password" name="contraseña" placeholder="Contraseña">
+            <button type="submit">Iniciar sesión</button>
+            <div id="loginError"></div>
+        </form>
+        <p style="text-align:center; margin-top:10px;">¿No tienes cuenta? 
+            <button type="button" class="toggle-btn" id="irRegistroBtn">Regístrate</button>
+        </p>
+    </div>
+</div>
+
+<script>
+const registroForm = document.getElementById("registroForm");
+const loginForm = document.getElementById("loginForm");
+const registroError = document.getElementById("registroError");
+const loginError = document.getElementById("loginError");
+const registroContainer = document.getElementById("registroFormContainer");
+const loginContainer = document.getElementById("loginFormContainer");
+
+// Función para mostrar login y ocultar registro
+function mostrarLogin(){
+    registroContainer.style.display = "none";
+    loginContainer.style.display = "block";
+    registroError.textContent = "";
+    loginError.textContent = "";
+}
+
+// Función para mostrar registro y ocultar login
+function mostrarRegistro(){
+    loginContainer.style.display = "none";
+    registroContainer.style.display = "block";
+    registroError.textContent = "";
+    loginError.textContent = "";
+}
+
+// Botón de registro → login
+document.getElementById("irLoginBtn2").addEventListener("click", mostrarLogin);
+
+// Botón de login → registro
+document.getElementById("irRegistroBtn").addEventListener("click", mostrarRegistro);
+
+// Registro
+registroForm.addEventListener("submit", function(e){
+    e.preventDefault();
+    registroError.textContent = "";
+    const nombre = this.nombre.value.trim();
+    const correo = this.correo.value.trim();
+    const contraseña = this.contraseña.value.trim();
+
+    if(!nombre || !correo || !contraseña){
+        registroError.textContent = "Rellene todos los campos";
+        return;
+    }
+
+    fetch("/registro", {
+        method:"POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({nombre, correo, contraseña})
+    })
+    .then(res => res.json())
+    .then(data => {
+        if(data.ok){
+            window.location.href = "/panel";
+        } else if(data.error === "Ese correo ya está registrado"){
+            registroError.textContent = data.error;
+            if(!document.getElementById("irLoginBtn")){
+                const btn = document.createElement("button");
+                btn.textContent = "Ir a inicio de sesión";
+                btn.className = "toggle-btn";
+                btn.id = "irLoginBtn";
+                btn.type = "button";
+                btn.onclick = mostrarLogin;
+                registroError.appendChild(btn);
+            }
+        } else {
+            registroError.textContent = data.error;
+        }
+    })
+    .catch(err => { registroError.textContent = "Error en el servidor"; });
+});
+
+// Login
+loginForm.addEventListener("submit", function(e){
+    e.preventDefault();
+    loginError.textContent = "";
+    const correo = this.correo.value.trim();
+    const contraseña = this.contraseña.value.trim();
+
+    if(!correo || !contraseña){
+        loginError.textContent = "Rellene todos los campos";
+        return;
+    }
+
+    fetch("/login", {
+        method:"POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({correo, contraseña})
+    })
+    .then(res => res.json())
+    .then(data => {
+        if(data.ok){
+            window.location.href = "/panel";
+        } else {
+            loginError.textContent = data.error;
+        }
+    })
+    .catch(err => { loginError.textContent = "Error en el servidor"; });
+});
+</script>
+
+</body>
+</html>
