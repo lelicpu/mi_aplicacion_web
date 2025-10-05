@@ -101,7 +101,6 @@ def obtener_datos():
     with open(ARCHIVO_USUARIOS, 'r', encoding='utf-8') as f:
         usuarios = json.load(f)
 
-    # Obtener ahorro del usuario
     ahorro = 0
     for u in usuarios:
         if u.get('correo') == correo:
@@ -149,5 +148,7 @@ def guardar_datos():
 
     return jsonify({"ok": True})
 
+# ---- Ejecutar la app ----
 if __name__ == '__main__':
-    app.run(debug=True)
+    port = int(os.environ.get('PORT', 5000))  # Puerto dinámico para Render
+    app.run(host='0.0.0.0', port=port, debug=True)
