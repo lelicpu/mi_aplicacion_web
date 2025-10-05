@@ -13,7 +13,7 @@
             align-items: flex-start;
             min-height: 100vh;
             padding: 20px;
-            gap: 20px; /* espacio entre panel izquierdo y gráfico */
+            gap: 20px; 
         }
 
         .panel, .grafico-container {
@@ -24,103 +24,34 @@
             width: 400px;
         }
 
-        h2 {
-            color: #6a0dad;
-            margin-bottom: 15px;
-            text-align: center;
-        }
-
-        h3 {
-            margin-top: 15px;
-            color: #6a0dad;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 10px;
-        }
-
-        th, td {
-            border: 1px solid #ddd;
-            padding: 6px;
-            text-align: center;
-        }
-
-        th {
-            background-color: #d8bff8;
-            color: #4a0072;
-        }
-
-        button {
-            background-color: #9b59b6;
-            border: none;
-            color: white;
-            padding: 6px 10px;
-            border-radius: 6px;
-            cursor: pointer;
-            margin: 3px 0;
-            width: 100%;
-        }
-
-        button:hover {
-            background-color: #7d3c98;
-        }
-
-        .saldo {
-            font-size: 16px;
-            font-weight: bold;
-            margin-bottom: 10px;
-            color: #4a0072;
-            text-align: center;
-        }
-
-        input[type="text"], input[type="number"], select {
-            width: 100%;
-            padding: 6px;
-            margin: 4px 0;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-        }
-
-        .grafico-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        canvas {
-            max-width: 100%;
-            max-height: 400px;
-        }
+        h2 { color: #6a0dad; margin-bottom: 15px; text-align: center; }
+        h3 { margin-top: 15px; color: #6a0dad; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+        th, td { border: 1px solid #ddd; padding: 6px; text-align: center; }
+        th { background-color: #d8bff8; color: #4a0072; }
+        button { background-color: #9b59b6; border: none; color: white; padding: 6px 10px; border-radius: 6px; cursor: pointer; margin: 3px 0; width: 100%; }
+        button:hover { background-color: #7d3c98; }
+        .saldo { font-size: 16px; font-weight: bold; margin-bottom: 10px; color: #4a0072; text-align: center; }
+        input[type="text"], input[type="number"], select { width: 100%; padding: 6px; margin: 4px 0; border-radius: 5px; border: 1px solid #ccc; }
+        .grafico-container { display: flex; flex-direction: column; align-items: center; }
+        canvas { max-width: 100%; max-height: 400px; }
     </style>
 </head>
 <body>
 
-<!-- Panel izquierdo: tablas y formularios -->
 <div class="panel">
     <h2>Hola, {{ nombre }} 👋</h2>
     <p class="saldo">Saldo disponible: <span id="saldoDisponible">$0</span></p>
 
-    <!-- Ingresos -->
     <div>
         <h3>Ingresos</h3>
         <input type="text" id="descIngreso" placeholder="Descripción">
         <input type="number" id="montoIngreso" placeholder="Monto">
         <button onclick="agregarIngreso()">Agregar ingreso</button>
         <button onclick="borrarIngresos()">Borrar ingresos</button>
-        <table id="tablaIngresos">
-            <thead>
-                <tr>
-                    <th>Descripción</th>
-                    <th>Monto</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
+        <table id="tablaIngresos"><thead><tr><th>Descripción</th><th>Monto</th></tr></thead><tbody></tbody></table>
     </div>
 
-    <!-- Gastos -->
     <div>
         <h3>Gastos</h3>
         <select id="catGasto">
@@ -135,19 +66,9 @@
         <input type="number" id="montoGasto" placeholder="Monto">
         <button onclick="agregarGasto()">Agregar gasto</button>
         <button onclick="borrarGastos()">Borrar gastos</button>
-        <table id="tablaGastos">
-            <thead>
-                <tr>
-                    <th>Categoría</th>
-                    <th>Descripción</th>
-                    <th>Monto</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
+        <table id="tablaGastos"><thead><tr><th>Categoría</th><th>Descripción</th><th>Monto</th></tr></thead><tbody></tbody></table>
     </div>
 
-    <!-- Ahorros -->
     <div>
         <h3>Ahorros</h3>
         <input type="number" id="montoAhorro" placeholder="Monto">
@@ -159,143 +80,117 @@
     <button onclick="cerrarSesion()">Cerrar sesión</button>
 </div>
 
-<!-- Panel derecho: gráfica de gastos -->
 <div class="grafico-container">
     <h3>Distribución de gastos</h3>
     <canvas id="graficaGastos"></canvas>
 </div>
 
 <script>
-    let ingresos = [];
-    let gastos = [];
-    let ahorro = 0;
+let ingresos = [];
+let gastos = [];
+let ahorro = 0;
 
-    // Función para formatear moneda
-    function formatoMoneda(valor) {
-        return '$' + valor.toLocaleString('es-CO', {minimumFractionDigits: 0});
-    }
+// Formateo
+function formatoMoneda(valor) { return '$' + valor.toLocaleString('es-CO', {minimumFractionDigits:0}); }
 
-    // Configuración de la gráfica
-    const categorias = ["Alimentación","Estudios","Transporte","Entretenimiento","Otros"];
-    const ctx = document.getElementById('graficaGastos').getContext('2d');
-    const grafica = new Chart(ctx, {
-        type: 'pie',
-        data: {
-            labels: categorias,
-            datasets: [{
-                data: [0,0,0,0,0],
-                backgroundColor: ['#FF6384','#36A2EB','#FFCE56','#9b59b6','#d35400']
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: { position: 'bottom' },
-                tooltip: { enabled: true }
-            }
-        }
+// Configuración de la gráfica
+const categorias = ["Alimentación","Estudios","Transporte","Entretenimiento","Otros"];
+const ctx = document.getElementById('graficaGastos').getContext('2d');
+const grafica = new Chart(ctx, {
+    type: 'pie',
+    data: { labels: categorias, datasets:[{data:[0,0,0,0,0], backgroundColor:['#FF6384','#36A2EB','#FFCE56','#9b59b6','#d35400']}] },
+    options: { responsive:true, plugins:{ legend:{position:'bottom'}, tooltip:{enabled:true} } }
+});
+
+// ---- Cargar y guardar datos ----
+function cargarDatos() {
+    fetch("/datos")
+    .then(res => res.json())
+    .then(data => {
+        ingresos = data.ingresos || [];
+        gastos = data.gastos || [];
+        ahorro = data.ahorro || 0;
+        actualizarTablas();
     });
+}
 
-    function actualizarGrafica() {
-        let data = categorias.map(cat => gastos
-            .filter(g => g.categoria === cat)
-            .reduce((a,b) => a + b.monto,0)
-        );
-        grafica.data.datasets[0].data = data;
-        grafica.update();
-    }
+function guardarDatos() {
+    fetch("/datos", {
+        method:"POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({ingresos,gastos,ahorro})
+    });
+}
 
-    function actualizarTablas() {
-        // Tabla de ingresos
-        const tbodyI = document.querySelector("#tablaIngresos tbody");
-        tbodyI.innerHTML = "";
-        ingresos.forEach(i => {
-            tbodyI.innerHTML += `<tr><td>${i.desc}</td><td>${formatoMoneda(i.monto)}</td></tr>`;
-        });
+// ---- Actualizar tablas y gráfica ----
+function actualizarGrafica() {
+    grafica.data.datasets[0].data = categorias.map(cat => gastos.filter(g=>g.categoria===cat).reduce((a,b)=>a+b.monto,0));
+    grafica.update();
+}
 
-        // Tabla de gastos
-        const tbodyG = document.querySelector("#tablaGastos tbody");
-        tbodyG.innerHTML = "";
-        gastos.forEach(g => {
-            tbodyG.innerHTML += `<tr>
-                <td>${g.categoria}</td>
-                <td>${g.descripcion}</td>
-                <td>${formatoMoneda(g.monto)}</td>
-            </tr>`;
-        });
+function actualizarTablas() {
+    const tbodyI = document.querySelector("#tablaIngresos tbody");
+    tbodyI.innerHTML = "";
+    ingresos.forEach(i => tbodyI.innerHTML += `<tr><td>${i.desc}</td><td>${formatoMoneda(i.monto)}</td></tr>`);
 
-        // Saldo y ahorro
-        const totalIngresos = ingresos.reduce((a,b) => a + b.monto, 0);
-        const totalGastos = gastos.reduce((a,b) => a + b.monto, 0);
-        const saldo = totalIngresos - totalGastos - ahorro;
-        document.getElementById("saldoDisponible").textContent = formatoMoneda(saldo);
-        document.getElementById("ahorroActual").textContent = formatoMoneda(ahorro);
+    const tbodyG = document.querySelector("#tablaGastos tbody");
+    tbodyG.innerHTML = "";
+    gastos.forEach(g => tbodyG.innerHTML += `<tr><td>${g.categoria}</td><td>${g.descripcion}</td><td>${formatoMoneda(g.monto)}</td></tr>`);
 
-        // Actualizar gráfica
-        actualizarGrafica();
-    }
+    const totalIngresos = ingresos.reduce((a,b)=>a+b.monto,0);
+    const totalGastos = gastos.reduce((a,b)=>a+b.monto,0);
+    const saldo = totalIngresos - totalGastos - ahorro;
+    document.getElementById("saldoDisponible").textContent = formatoMoneda(saldo);
+    document.getElementById("ahorroActual").textContent = formatoMoneda(ahorro);
 
-    // Funciones de Ingresos
-    function agregarIngreso() {
-        const desc = document.getElementById("descIngreso").value;
-        const monto = parseFloat(document.getElementById("montoIngreso").value);
-        if(!desc || isNaN(monto) || monto <= 0) return alert("Datos inválidos");
-        ingresos.push({desc, monto});
-        document.getElementById("descIngreso").value = "";
-        document.getElementById("montoIngreso").value = "";
-        actualizarTablas();
-    }
+    actualizarGrafica();
+}
 
-    function borrarIngresos() {
-        if(confirm("¿Seguro que deseas borrar todos los ingresos?")) {
-            ingresos = [];
-            actualizarTablas();
-        }
-    }
+// ---- Funciones de Ingresos/Gastos/Ahorro ----
+function agregarIngreso() {
+    const desc = document.getElementById("descIngreso").value;
+    const monto = parseFloat(document.getElementById("montoIngreso").value);
+    if(!desc || isNaN(monto) || monto<=0) return alert("Datos inválidos");
+    ingresos.push({desc,monto});
+    document.getElementById("descIngreso").value = "";
+    document.getElementById("montoIngreso").value = "";
+    actualizarTablas(); guardarDatos();
+}
 
-    // Funciones de Gastos
-    function agregarGasto() {
-        const categoria = document.getElementById("catGasto").value;
-        const descripcion = document.getElementById("descGasto").value;
-        const monto = parseFloat(document.getElementById("montoGasto").value);
-        if(!categoria || isNaN(monto) || monto <= 0) return alert("Datos inválidos");
-        gastos.push({categoria, descripcion, monto});
-        document.getElementById("catGasto").value = "";
-        document.getElementById("descGasto").value = "";
-        document.getElementById("montoGasto").value = "";
-        actualizarTablas();
-    }
+function borrarIngresos() { if(confirm("¿Seguro que deseas borrar todos los ingresos?")) { ingresos=[]; actualizarTablas(); guardarDatos(); } }
 
-    function borrarGastos() {
-        if(confirm("¿Seguro que deseas borrar todos los gastos?")) {
-            gastos = [];
-            actualizarTablas();
-        }
-    }
+function agregarGasto() {
+    const cat = document.getElementById("catGasto").value;
+    const desc = document.getElementById("descGasto").value;
+    const monto = parseFloat(document.getElementById("montoGasto").value);
+    if(!cat || isNaN(monto) || monto<=0) return alert("Datos inválidos");
+    gastos.push({categoria:cat, descripcion:desc, monto:monto});
+    document.getElementById("catGasto").value=""; document.getElementById("descGasto").value=""; document.getElementById("montoGasto").value="";
+    actualizarTablas(); guardarDatos();
+}
 
-    // Funciones de Ahorro
-    function agregarAhorro() {
-        const monto = parseFloat(document.getElementById("montoAhorro").value);
-        if(isNaN(monto) || monto <= 0) return alert("Monto inválido");
-        ahorro += monto;
-        document.getElementById("montoAhorro").value = "";
-        actualizarTablas();
-    }
+function borrarGastos() { if(confirm("¿Seguro que deseas borrar todos los gastos?")) { gastos=[]; actualizarTablas(); guardarDatos(); } }
 
-    function retirarAhorro() {
-        const monto = parseFloat(document.getElementById("montoAhorro").value);
-        if(isNaN(monto) || monto <= 0) return alert("Monto inválido");
-        if(monto > ahorro) return alert("No puedes retirar más del ahorro actual");
-        ahorro -= monto;
-        document.getElementById("montoAhorro").value = "";
-        actualizarTablas();
-    }
+function agregarAhorro() {
+    const monto=parseFloat(document.getElementById("montoAhorro").value);
+    if(isNaN(monto)||monto<=0) return alert("Monto inválido");
+    ahorro+=monto;
+    document.getElementById("montoAhorro").value="";
+    actualizarTablas(); guardarDatos();
+}
 
-    function cerrarSesion() {
-        window.location.href = "/";
-    }
+function retirarAhorro() {
+    const monto=parseFloat(document.getElementById("montoAhorro").value);
+    if(isNaN(monto)||monto<=0) return alert("Monto inválido");
+    if(monto>ahorro) return alert("No puedes retirar más del ahorro actual");
+    ahorro-=monto;
+    document.getElementById("montoAhorro").value="";
+    actualizarTablas(); guardarDatos();
+}
 
-    actualizarTablas();
+function cerrarSesion(){ window.location.href="/"; }
+
+document.addEventListener("DOMContentLoaded", cargarDatos);
 </script>
 
 </body>
